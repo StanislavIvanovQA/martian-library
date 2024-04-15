@@ -1,0 +1,9 @@
+query LibraryQuery {
+    items {
+        id
+        title
+        user {
+            email
+        }
+    }
+}
