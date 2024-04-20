@@ -6,7 +6,7 @@ module Mutations
     argument :image_url, String, required: false
 
     field :item, Types::ItemType, null: true
-    field :errors, [String], null: false
+    field :errors, Types::ValidationErrorsType, null: true
 
     def resolve(id:, title:, description: nil, image_url: nil)
       check_authentication!
@@ -16,7 +16,7 @@ module Mutations
       if item.update(title:, description:, image_url:)
         {item:}
       else
-        {errors: item.errors.full_messages}
+        {errors: item.errors}
       end
     end
   end
