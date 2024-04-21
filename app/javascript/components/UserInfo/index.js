@@ -1,11 +1,17 @@
 import React, {useRef} from 'react'
-import {Query, Mutation, useApolloClient} from 'react-apollo'
+import {Query, Mutation, useApolloClient, useQuery, useMutation} from 'react-apollo'
 import {Me, SignMeIn} from './operations.graphql'
 import cs from './styles'
 
 const UserInfo = () => {
     const input = useRef(null)
     const client = useApolloClient()
+    const {data, loading} = useQuery(Me)
+    const [signIn, {loading: authenticating, error}] = useMutation(SignMeIn, {
+        update: (cache, {data: {signIn}}) => {
+            cache.writeQuery({query: Me, data: {me: signIn.user}})
+        },
+    })
 
     // handlers
 
@@ -48,12 +54,6 @@ const UserInfo = () => {
         )
     }
 
-    const SignIn = (signIn, {loading: authenticating, error}) => {
-        return authenticating
-            ? ('...')
-            : <LoginForm error={error} signIn={signIn}/>
-    }
-
     const SignedIn = ({fullName}) => {
         return (
             <>
@@ -70,26 +70,19 @@ const UserInfo = () => {
 
     // component body
 
+    const Body = () => {
+        if (loading) return '...Loading'
+        if (!data.me) {
+            return authenticating
+                ? ('...')
+                : <LoginForm error={error} signIn={signIn}/>
+        }
+        return <SignedIn fullName={data.me.fullName}/>
+    }
+
     return (
         <div className={cs.panel}>
-            <Query query={Me}>
-                {({data, loading}) => {
-                    if (loading) return '...Loading'
-                    if (!data.me) {
-                        return (
-                            <Mutation
-                                mutation={SignMeIn}
-                                update={(cache, {data: {signIn}}) => {
-                                    cache.writeQuery({query: Me, data: {me: signIn.user}})
-                                }}
-                            >
-                                {SignIn}
-                            </Mutation>
-                        )
-                    }
-                    return <SignedIn fullName={data.me.fullName}/>
-                }}
-            </Query>
+            <Body/>
         </div>
     )
 }

@@ -1,13 +1,14 @@
 import React, {useState} from 'react'
 import cs from './styles';
-import {Mutation} from 'react-apollo'
+import {Mutation, useMutation} from 'react-apollo'
 import {UpdateItemMutation} from './operations.graphql'
 import ProcessItemForm from '../ProcessItemForm'
 
 const UpdateItemForm = ({ id, initialTitle, initialDescription, initialImageUrl, onClose }) => {
+    const [updateItem, {loading}] = useMutation(UpdateItemMutation)
     const [errors, setErrors] = useState(null)
 
-    const onProcessItemCurry = (updateItem) => ({title, description, imageUrl}) => {
+    const onProcessItem = ({title, description, imageUrl}) => {
         updateItem({
             variables: {
                 id,
@@ -15,6 +16,7 @@ const UpdateItemForm = ({ id, initialTitle, initialDescription, initialImageUrl,
                 description,
                 imageUrl
             },
+            // todo: figure out how to both have an optimistic response and working error handling
             optimisticResponse: {
                 __typename: 'Mutation',
                 updateItem: {
@@ -25,7 +27,8 @@ const UpdateItemForm = ({ id, initialTitle, initialDescription, initialImageUrl,
                         title,
                         description,
                         imageUrl
-                    }
+                    },
+                    errors
                 }
             }
         }).then(({data}) => {
@@ -39,19 +42,15 @@ const UpdateItemForm = ({ id, initialTitle, initialDescription, initialImageUrl,
 
     return <div className={cs.overlay}>
         <div className={cs.content}>
-            <Mutation mutation={UpdateItemMutation}>
-                {(updateItem, {loading, data}) => (
-                    <ProcessItemForm
-                        initialImageUrl={initialImageUrl}
-                        initialTitle={initialTitle}
-                        initialDescription={initialDescription}
-                        buttonText="Update Item"
-                        loading={loading}
-                        onProcessItem={onProcessItemCurry(updateItem)}
-                        errors={errors}
-                    ></ProcessItemForm>
-                )}
-            </Mutation>
+            <ProcessItemForm
+                initialImageUrl={initialImageUrl}
+                initialTitle={initialTitle}
+                initialDescription={initialDescription}
+                buttonText="Update Item"
+                loading={loading}
+                onProcessItem={onProcessItem}
+                errors={errors}
+            />
             <button className={cs.close} onClick={onClose}>Close</button>
         </div>
     </div>

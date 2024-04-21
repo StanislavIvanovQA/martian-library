@@ -1,9 +1,12 @@
 class MartianLibrarySchema < GraphQL::Schema
   mutation(Types::MutationType)
   query(Types::QueryType)
+  subscription(Types::SubscriptionType)
 
   # For batch-loading (see https://graphql-ruby.org/dataloader/overview.html)
   use GraphQL::Dataloader
+  # Action Cable
+  use GraphQL::Subscriptions::ActionCableSubscriptions
 
   # GraphQL-Ruby calls this when something goes wrong while running a query:
   def self.type_error(err, context)

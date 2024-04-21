@@ -1,11 +1,13 @@
 import React, {useState} from 'react'
 import cs from './styles'
-import {Query} from 'react-apollo'
+import {useQuery} from 'react-apollo'
 import {LibraryQuery} from './operations.graphql'
 import UpdateItemForm from '../UpdateItemForm'
+import Subscription from '../Subscription'
 
 const Library = () => {
     const [item, setItem] = useState(null)
+    const {data, loading, subscribeToMore} = useQuery(LibraryQuery)
 
     const UpdateForm = () => <UpdateItemForm
         id={item.id}
@@ -15,7 +17,7 @@ const Library = () => {
         onClose={() => setItem(null)}
     />
 
-    const LibraryItems = ({data}) => data.items.map(({title, id, user, imageUrl, description}) => {
+    const LibraryItems = () => data.items.map(({title, id, user, imageUrl, description}) => {
         return <button
             key={id}
             className={cs.plate}
@@ -32,19 +34,16 @@ const Library = () => {
     })
 
     return (
-        <Query query={LibraryQuery}>
-            {({data, loading}) => (
-                <>
-                    <div className={cs.library}>
-                        {loading || !data.items
-                            ? 'loading...'
-                            : <LibraryItems data={data}/>
-                        }
-                    </div>
-                    {item && <UpdateForm/>}
-                </>
-            )}
-        </Query>
+        <>
+            <div className={cs.library}>
+                {loading || !data.items
+                    ? 'loading...'
+                    : <LibraryItems/>
+                }
+                <Subscription subscribeToMore={subscribeToMore}/>
+            </div>
+            {item && <UpdateForm/>}
+        </>
     )
 }
 

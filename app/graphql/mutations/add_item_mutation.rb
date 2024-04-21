@@ -11,6 +11,7 @@ module Mutations
       item = Item.new(attributes.to_h.merge(user: context[:current_user]))
 
       if item.save
+        MartianLibrarySchema.subscriptions.trigger("itemAdded", {}, item)
         {item:}
       else
         {errors: item.errors}
